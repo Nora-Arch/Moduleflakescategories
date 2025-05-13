@@ -1,9 +1,13 @@
 Package: Moduleflakescategories
-Title: What the Package Does (One Line, Title Case)
+Title: Create statistical data to support flake modules categories
 Version: 0.0.0.9000
 Authors@R:
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+   person(given = "David",
+           family = "Nora",
+           role = c("aut", "cre"),
+           email = "david.ac.nora@gmail.com",
+           comment = c(ORCID = "0000-0002-2948-776X"))
+Description: This package helps to build radar charts and statistical test that are present in the paper.
 License: MIT + file LICENSE
 ByteCompile: true
 Encoding: UTF-8

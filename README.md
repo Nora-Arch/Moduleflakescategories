@@ -3,12 +3,12 @@ This repository contain the code we applied to study the technological attributi
 
 This repository contains the data and code for our paper:
 
-> Authors, (YYYY). **. Name of journal/book
+> David Nora, Ariel Malinsky Buller, Boris Gasparyan, Artur Petrosyan, Ellery Frahm, (2025). *Snakes and Ladders: A technological approach to tool maintenance by-products using module flake categories.*. Name of journal/book
 > <https://doi.org/xxx/xxx>
 
 Our pre-print is online here:
 
-> Authors, (YYYY). *Title of your paper goes here*. Name of
+> David Nora, Ariel Malinsky Buller, Boris Gasparyan, Artur Petrosyan, Ellery Frahm, (2025). *Snakes and Ladders: A technological approach to tool maintenance by-products using module flake categories.* Name of
 > journal/book, Accessed 18 Feb 2025. Online at
 > <https://doi.org/xxx/xxx>
 
