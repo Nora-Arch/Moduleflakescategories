@@ -38,10 +38,10 @@ df <- read.csv("C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\P
 # and create a unique identifier for each observation.
 df_filtered <- df %>% 
   filter(DATACLASS == "Complete") %>% 
-  select(MODULE.OF.RETOUCH, TECHNOLOGICAL.LENGTH, TECHNOLOGICAL.WIDTH, THICKNESS) %>% 
+  select(MODULE, TECHNOLOGICAL.LENGTH, TECHNOLOGICAL.WIDTH, THICKNESS) %>% 
   na.omit() %>%
   rename(
-    Module = MODULE.OF.RETOUCH,
+    Module = MODULE,
     Length = TECHNOLOGICAL.LENGTH,
     Width = TECHNOLOGICAL.WIDTH,
     Thickness = THICKNESS
