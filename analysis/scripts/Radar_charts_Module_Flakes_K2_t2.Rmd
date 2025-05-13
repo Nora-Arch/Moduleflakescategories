@@ -33,7 +33,7 @@ library(stringr)
 library(purrr)
 
 # Load your data (adjust the file path as needed)
-df <- read.csv("C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\PhD_archaeological_sites\\Lithic_Analysis_Kalavan_T1_T2_Ararat_1_Cave\\Input\\Edge_Modification\\Kalavan_2_T2_Edge_Modification.csv", 
+df <- read.csv("C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\Publications\\In_Proguess\\PhD\\Theory and Methods\\Submission\\Moduleflakescategories\\analysis\\data\\raw_data\\Kalavan_2_T2_Edge_Modification.csv", 
                stringsAsFactors = FALSE)
 
 # Filter for complete observations, select and rename the needed columns,
@@ -237,7 +237,8 @@ p <- p_radar_chart +
 ```{r}
 # Display the plot
 print(p)
-
+```
+```{r}
 # Save the plot to a file (adjust filename and dimensions as needed)
-ggsave("radar_charts_Kalavan_2_T2.png", plot = p, width = 12, height = 8, dpi = 300, bg = 'white')
+ggsave("C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\Publications\\In_Proguess\\PhD\\Theory and Methods\\Submission\\Moduleflakescategories\\analysis\\data\\derived_data\\radar_charts_Kalavan_2_T2.png", plot = p, width = 12, height = 8, dpi = 300, bg = 'white')
 ```
