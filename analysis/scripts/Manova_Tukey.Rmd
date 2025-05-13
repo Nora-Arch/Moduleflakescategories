@@ -1,0 +1,132 @@
+---
+title: "DORSAL SCARS vs Approximate Area and MODULE"
+author: David NOra
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Load Libraries
+```{r}
+library(car)
+library(dplyr)
+library(broom)
+library(ggplot2)
+library(readr)
+```
+
+## Load the Data
+```{r load-data}
+# Load and label the datasets
+kalavan_t1 <- read_csv("C:/Users/David/OneDrive - huji.ac.il/Desktop/Archaeology/Publications/In_Proguess/PhD/Theory and Methods/Analysis/Input/kalavan_2_T1_Edge_Modification.csv")
+
+kalavan_t2 <- read_csv("C:/Users/David/OneDrive - huji.ac.il/Desktop/Archaeology/Publications/In_Proguess/PhD/Theory and Methods/Analysis/Input/Kalavan_2_T2_Edge_Modification.csv")
+
+ararat_1 <- read_csv("C:/Users/David/OneDrive - huji.ac.il/Desktop/Archaeology/Publications/In_Proguess/PhD/Theory and Methods/Analysis/Input/Ararat_1_Cave_Edge_Modification.csv") 
+
+```
+
+## Prepare Data
+```{r prepare-data}
+# Ensure the grouping variable is a factor
+kalavan_t1$MODULE <- as.factor(kalavan_t1$MODULE)
+kalavan_t2$MODULE <- as.factor(kalavan_t2$MODULE)
+ararat_1$MODULE <- as.factor(ararat_1$MODULE)
+
+# Check structure
+str(kalavan_t1)
+str(kalavan_t2)
+str(ararat_1)
+
+kalavan_t1_complete <- kalavan_t1 %>%
+  filter(!is.na(`DORSAL SCARS`) & !is.na(`Approximate area`) & !is.na(MODULE))
+kalavan_t2_complete <- kalavan_t2 %>%
+  filter(!is.na(`DORSAL SCARS`) & !is.na(`Approximate area`) & !is.na(MODULE))
+ararat_1_complete <- ararat_1 %>%
+  filter(!is.na(`DORSAL SCARS`) & !is.na(`Approximate area`) & !is.na(MODULE))
+```
+
+## MANOVA: Multivariate Test of Group Differences
+```{r manova-test}
+# Run the MANOVA for each dataset
+manova_model1 <- manova(cbind(`DORSAL SCARS`, `Approximate area`) ~ MODULE, data = kalavan_t1_complete)
+manova_model2 <- manova(cbind(`DORSAL SCARS`, `Approximate area`) ~ MODULE, data = kalavan_t2_complete)
+manova_model3 <- manova(cbind(`DORSAL SCARS`, `Approximate area`) ~ MODULE, data = ararat_1_complete)
+
+# Get Wilks' Lambda summaries
+wilks_summary1 <- summary(manova_model1, test = "Wilks")
+wilks_summary2 <- summary(manova_model2, test = "Wilks")
+wilks_summary3 <- summary(manova_model3, test = "Wilks")
+
+wilks_summary1
+wilks_summary2
+wilks_summary3
+```
+
+## Export Wilks' Lambda Test to CSV (Manual Extraction)
+```{r export-wilks}
+# Extract and save Wilks' statistics for each dataset
+extract_wilks <- function(summary_result) {
+  data.frame(
+    Test = "Wilks",
+    ApproxF = summary_result$stats[1, "approx F"],
+    NumDF = summary_result$stats[1, "num Df"],
+    DenDF = summary_result$stats[1, "den Df"],
+    PrF = summary_result$stats[1, "Pr(>F)"]
+  )
+}
+
+write.csv(extract_wilks(wilks_summary1), "wilks_lambda_results_kalavan_t1.csv", row.names = FALSE)
+write.csv(extract_wilks(wilks_summary2), "wilks_lambda_results_kalavan_t2.csv", row.names = FALSE)
+write.csv(extract_wilks(wilks_summary3), "wilks_lambda_results_ararat_1.csv", row.names = FALSE)
+```
+
+## Post-hoc Analyses: Univariate ANOVAs and Tukey Tests
+
+Once the MANOVA shows a significant multivariate effect, we follow up with univariate ANOVAs and post-hoc tests to explore which variables and group comparisons contribute most to the effect.
+
+### ANOVA and Tukey HSD for `DORSAL SCARS`
+
+```{r anova-scars}
+# Kalavan T1
+aov_scars1 <- aov(`DORSAL SCARS` ~ MODULE, data = kalavan_t1_complete)
+summary(aov_scars1)
+tukey_scars1 <- TukeyHSD(aov_scars1)
+tukey_scars1
+
+# Kalavan T2
+aov_scars2 <- aov(`DORSAL SCARS` ~ MODULE, data = kalavan_t2_complete)
+summary(aov_scars2)
+tukey_scars2 <- TukeyHSD(aov_scars2)
+tukey_scars2
+
+# Ararat 1
+aov_scars3 <- aov(`DORSAL SCARS` ~ MODULE, data = ararat_1_complete)
+summary(aov_scars3)
+tukey_scars3 <- TukeyHSD(aov_scars3)
+tukey_scars3
+```
+
+### ANOVA and Tukey HSD for `Approximate area`
+
+```{r anova-area}
+# Kalavan T1
+aov_area1 <- aov(`Approximate area` ~ MODULE, data = kalavan_t1_complete)
+summary(aov_area1)
+tukey_area1 <- TukeyHSD(aov_area1)
+tukey_area1
+
+# Kalavan T2
+aov_area2 <- aov(`Approximate area` ~ MODULE, data = kalavan_t2_complete)
+summary(aov_area2)
+tukey_area2 <- TukeyHSD(aov_area2)
+tukey_area2
+
+# Ararat 1
+aov_area3 <- aov(`Approximate area` ~ MODULE, data = ararat_1_complete)
+summary(aov_area3)
+tukey_area3 <- TukeyHSD(aov_area3)
+tukey_area3
+```

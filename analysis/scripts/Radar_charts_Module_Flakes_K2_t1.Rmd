@@ -1,0 +1,246 @@
+---
+title: "Radar_chart_Module_Flakes_K_t1"
+author: "David Nora"
+date: "2025-03-26"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Content
+
+This document demonstrates how to create radar charts using **ggplot2** in R. Each radar chart (faceted by module) shows:
+
+- **Individual observations** as outlines.
+- A **background polygon** representing the average of the previous module (for modules with a previous module).
+- **Text labels** for each measurement that display the current module’s average and standard deviation in the format "avg ± sd".
+
+In this version, no polygon (or line) is drawn for the current module’s average or its ±SD band; only the computed values are displayed as text.
+
+---
+
+# 1. Data Loading and Preparation:
+
+We first load our data from a CSV file, filter for complete observations, select and rename the necessary columns, and add a unique identifier for each observation.
+
+```{r data-loading}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(stringr)
+library(purrr)
+
+# Load your data (adjust the file path as needed)
+df <- read.csv("C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\PhD_archaeological_sites\\Lithic_Analysis_Kalavan_T1_T2_Ararat_1_Cave\\Input\\Edge_Modification\\Kalavan_2_T1_Edge_Modification.csv", 
+               stringsAsFactors = FALSE)
+
+# Filter for complete observations, select and rename the needed columns,
+# and create a unique identifier for each observation.
+df_filtered <- df %>% 
+  filter(DATACLASS == "Complete") %>% 
+  select(MODULE.OF.RETOUCH, TECHNOLOGICAL.LENGTH, TECHNOLOGICAL.WIDTH, THICKNESS) %>% 
+  na.omit() %>%
+  rename(
+    Module = MODULE.OF.RETOUCH,
+    Length = TECHNOLOGICAL.LENGTH,
+    Width = TECHNOLOGICAL.WIDTH,
+    Thickness = THICKNESS
+  ) %>%
+  mutate(ID = row_number())
+```
+
+# 2. Reshape Data to Long Format:
+
+We convert the data from wide format (one row per observation with multiple measurement columns) to long format (one row per measurement per observation). This makes it easier to work with in ggplot2.
+```{r}
+# Reshape data to long format so that each row is one measurement for one observation.
+df_long <- df_filtered %>%
+  pivot_longer(cols = c("Length", "Width", "Thickness"), 
+               names_to = "Measurement", 
+               values_to = "Value")
+```
+
+# 3. Compute Angular Positions and Cartesian Coordinates:
+
+We define the order of measurements and compute equally spaced angles (in radians) for their positions around the radar chart. Then, we convert polar coordinates (with the measurement value as the radius) into Cartesian coordinates (x and y).
+```{r}
+# Define the order of measurements (this order determines their position around the circle)
+measurement_levels <- c("Length", "Width", "Thickness")
+df_long$Measurement <- factor(df_long$Measurement, levels = measurement_levels)
+
+# Compute equally spaced angles (in radians) for each measurement
+n_vars <- length(measurement_levels)
+angles <- seq(0, 2 * pi, length.out = n_vars + 1)[- (n_vars + 1)]
+names(angles) <- measurement_levels
+
+# Add angle and compute Cartesian coordinates for each observation
+df_long <- df_long %>%
+  mutate(angle = angles[as.character(Measurement)],
+         x = Value * sin(angle),
+         y = Value * cos(angle))
+```
+
+# 4. Background Polygon: Previous Module Average:
+
+For modules with a number greater than 0, we compute the average measurement values from the previous module and convert these values to Cartesian coordinates. These will be used to create a background polygon.
+```{r}
+# Compute average value for each Module and Measurement
+df_avg <- df_long %>%
+  group_by(Module, Measurement) %>%
+  summarise(avg_value = mean(Value), .groups = "drop") %>%
+  mutate(mod_num = as.numeric(str_extract(Module, "\\d+")))
+
+# For modules with mod_num > 0, join the average values of the previous module.
+df_bg <- df_avg %>%
+  filter(mod_num > 0) %>%                     # only for modules that have a previous module
+  mutate(mod_num_bg = mod_num - 1) %>%          # previous module number
+  left_join(
+    df_avg %>% 
+      select(Module, Measurement, avg_value, mod_num) %>% 
+      rename(bg_avg = avg_value, Module_bg = Module),
+    by = c("mod_num_bg" = "mod_num", "Measurement")
+  ) %>%
+  arrange(Module, Measurement) %>%
+  mutate(x_bg = bg_avg * sin(angles[as.character(Measurement)]),
+         y_bg = bg_avg * cos(angles[as.character(Measurement)]))
+
+```
+
+# 5. Current Module Statistics: Average and ±SD (Text Labels Only):
+
+We calculate the average and standard deviation (SD) for each module and measurement. Instead of drawing polygons or lines for these values, we create text labels to display "avg ± sd" for each measurement.
+```{r}
+# Compute average and standard deviation for each Module/Measurement
+df_stats <- df_long %>%
+  group_by(Module, Measurement) %>%
+  summarise(avg = mean(Value),
+            sd = sd(Value),
+            .groups = "drop") %>%
+  mutate(lower = pmax(0, avg - sd),  # lower bound (not less than 0)
+         upper = avg + sd,
+         angle = angles[as.character(Measurement)],
+         x_avg = avg * sin(angle),
+         y_avg = avg * cos(angle)) %>%
+  # Create a label "avg ± sd" (rounded to one decimal place)
+  mutate(label = paste0(round(avg, 1), " ± ", round(sd, 1)))
+```
+
+# 6. Constructing Gridlines, Scale Labels, and Spoke Labels:
+
+We now prepare the background elements of the radar chart: circular gridlines, scale labels along the right border, and labels for the radial spokes (which display the measurement names).
+```{r}
+# Define grid (scale) values (e.g., at 10, 20, 30, 40, 50)
+grid_values <- seq(10, 35, by = 5)
+
+# Create circular gridlines data
+circle_data <- do.call(rbind, lapply(grid_values, function(r) {
+  data.frame(
+    x = r * sin(seq(0, 2 * pi, length.out = 100)),
+    y = r * cos(seq(0, 2 * pi, length.out = 100)),
+    r = r
+  )
+}))
+
+# Create scale labels along the right border (x = r, y = 0)
+modules_text <- unique(df_filtered$Module)
+scale_labels <- expand.grid(r = grid_values, Module = modules_text) %>%
+  mutate(x = r, y = 0, label = r)
+
+# Create radial spoke labels for the measurements, placed slightly outside the maximum radius (e.g., at 55)
+spoke_labels <- data.frame(
+  Measurement = names(angles),
+  angle = angles,
+  x = 35 * sin(angles),
+  y = 35 * cos(angles)
+)
+```
+
+# 7. Building the ggplot Radar Chart:
+
+All the components are now assembled into one ggplot object. In this version, we remove the individual measurement text labels and instead aggregate them by module. The aggregated text labels (showing "Measurement: avg ± sd") are placed in the top left of each facet.
+```{r}
+# Aggregate text labels for each module (combine measurements)
+df_label <- df_stats %>% 
+  group_by(Module) %>% 
+  summarise(label_text = paste(paste(Measurement, label, sep=": "), collapse="\n"),
+            .groups = "drop") %>%
+  mutate(x = -60, y = 45)  # Adjust coordinates as needed (top left of the chart)
+
+p_radar_chart <- ggplot() +
+  # Circular gridlines
+  geom_path(data = circle_data, aes(x = x, y = y, group = r),
+            color = "grey80", size = 0.5) +
+  # Radial spokes (dashed lines)
+  geom_segment(data = data.frame(x = 0, y = 0, 
+                                 xend = 50 * sin(angles), 
+                                 yend = 50 * cos(angles),
+                                 Measurement = names(angles)),
+               aes(x = x, y = y, xend = xend, yend = yend),
+               color = "grey80", linetype = "dashed") +
+  # Spoke labels (e.g., "Length", "Width", "Thickness")
+  geom_text(data = spoke_labels, aes(x = x, y = y, label = Measurement),
+            color = "black", size = 4, fontface = "bold") +
+  # Scale labels along the right border
+  geom_text(data = scale_labels, aes(x = x, y = y, label = label),
+            color = "grey30", size = 3, hjust = -0.5) +
+  # Individual observation outlines (current module data)
+  geom_path(data = df_long,
+            aes(x = x, y = y, group = interaction(Module, ID), color = Module),
+            size = 1) +
+  # Background polygon: previous module's average (if available)
+  geom_polygon(data = df_bg, 
+               aes(x = x_bg, y = y_bg, group = Module, fill = Module_bg),
+               alpha = 0.2, color = "grey70", size = 0.3) +
+  # Aggregated text labels for current module's statistics (placed on top left)
+  geom_text(data = df_label, aes(x = x, y = y, label = label_text),
+            color = "black", size = 3, fontface = "bold", hjust = 0, vjust = 1) +
+  coord_fixed() +
+  facet_wrap(~ Module) +
+  labs(title = "Radar Charts for edge modification modules at Kalavan 2 T1",
+       subtitle = "Each facet shows individual observations, background (prev. module average), and current module average ± SD as aggregated text labels (top left)",
+       x = NULL, y = NULL) +
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank(),
+        panel.grid = element_blank(),
+        strip.text = element_text(face = "bold", size = 12))
+```
+
+# 8. Manual Color Scales and Plot Display:
+
+We set manual color scales for consistency and display the final plot.
+```{r}
+# (Optional) Define manual colors for consistency
+module_colors <- c(
+  "Module 0" = "blue",
+  "Module 1" = "red",
+  "Module 2" = "gold",
+  "Module 3" = "green",
+  "Module 4" = "grey"
+)
+p <- p_radar_chart +
+  scale_color_manual(
+    values = module_colors,
+    name = "Module Flakes"  # New legend title for individual outlines
+  ) +
+  scale_fill_manual(
+    values = module_colors,
+    name = "Module Flakes polygon average"  # New legend title for background polygons
+  )
+
+```
+
+# 9. Print and Save the Plot
+
+```{r}
+# Display the plot
+print(p)
+
+# Save the plot to a file (adjust filename and dimensions as needed)
+ggsave("radar_charts_Kalavan_2_T1.png", plot = p, width = 12, height = 8, dpi = 300, bg = 'white')
+```
+---
+
+This combined Markdown document includes all the code and explanations in one file. You can now use it as an R Markdown document for reproducible reporting.
