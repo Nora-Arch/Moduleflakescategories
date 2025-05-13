@@ -20,11 +20,11 @@ library(readr)
 ## Load the Data
 ```{r load-data}
 # Load and label the datasets
-kalavan_t1 <- read_csv("C:/Users/David/OneDrive - huji.ac.il/Desktop/Archaeology/Publications/In_Proguess/PhD/Theory and Methods/Analysis/Input/kalavan_2_T1_Edge_Modification.csv")
+kalavan_t1 <- read_csv("C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\Publications\\In_Proguess\\PhD\\Theory and Methods\\Submission\\Moduleflakescategories\\analysis\\data\\raw_data\\kalavan_2_T1_Edge_Modification.csv")
 
-kalavan_t2 <- read_csv("C:/Users/David/OneDrive - huji.ac.il/Desktop/Archaeology/Publications/In_Proguess/PhD/Theory and Methods/Analysis/Input/Kalavan_2_T2_Edge_Modification.csv")
+kalavan_t2 <- read_csv("C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\Publications\\In_Proguess\\PhD\\Theory and Methods\\Submission\\Moduleflakescategories\\analysis\\data\\raw_data\\Kalavan_2_T2_Edge_Modification.csv")
 
-ararat_1 <- read_csv("C:/Users/David/OneDrive - huji.ac.il/Desktop/Archaeology/Publications/In_Proguess/PhD/Theory and Methods/Analysis/Input/Ararat_1_Cave_Edge_Modification.csv") 
+ararat_1 <- read_csv("C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\Publications\\In_Proguess\\PhD\\Theory and Methods\\Submission\\Moduleflakescategories\\analysis\\data\\raw_data\\Ararat_1_Cave_Edge_Modification.csv") 
 
 ```
 
@@ -78,9 +78,9 @@ extract_wilks <- function(summary_result) {
   )
 }
 
-write.csv(extract_wilks(wilks_summary1), "wilks_lambda_results_kalavan_t1.csv", row.names = FALSE)
-write.csv(extract_wilks(wilks_summary2), "wilks_lambda_results_kalavan_t2.csv", row.names = FALSE)
-write.csv(extract_wilks(wilks_summary3), "wilks_lambda_results_ararat_1.csv", row.names = FALSE)
+write.csv(extract_wilks(wilks_summary1), "C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\Publications\\In_Proguess\\PhD\\Theory and Methods\\Submission\\Moduleflakescategories\\analysis\\data\\derived_data\\wilks_lambda_results_kalavan_t1.csv", row.names = FALSE)
+write.csv(extract_wilks(wilks_summary2), "C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\Publications\\In_Proguess\\PhD\\Theory and Methods\\Submission\\Moduleflakescategories\\analysis\\data\\derived_data\\wilks_lambda_results_kalavan_t2.csv", row.names = FALSE)
+write.csv(extract_wilks(wilks_summary3), "C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archaeology\\Publications\\In_Proguess\\PhD\\Theory and Methods\\Submission\\Moduleflakescategories\\analysis\\data\\derived_data\\wilks_lambda_results_ararat_1.csv", row.names = FALSE)
 ```
 
 ## Post-hoc Analyses: Univariate ANOVAs and Tukey Tests

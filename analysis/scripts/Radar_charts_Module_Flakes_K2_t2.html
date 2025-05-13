@@ -405,10 +405,10 @@ df &lt;- read.csv(&quot;C:\\Users\\David\\OneDrive - huji.ac.il\\Desktop\\Archae
 # and create a unique identifier for each observation.
 df_filtered &lt;- df %&gt;% 
   filter(DATACLASS == &quot;Complete&quot;) %&gt;% 
-  select(MODULE.OF.RETOUCH, TECHNOLOGICAL.LENGTH, TECHNOLOGICAL.WIDTH, THICKNESS) %&gt;% 
+  select(MODULE, TECHNOLOGICAL.LENGTH, TECHNOLOGICAL.WIDTH, THICKNESS) %&gt;% 
   na.omit() %&gt;%
   rename(
-    Module = MODULE.OF.RETOUCH,
+    Module = MODULE,
     Length = TECHNOLOGICAL.LENGTH,
     Width = TECHNOLOGICAL.WIDTH,
     Thickness = THICKNESS
